@@ -1,3 +1,4 @@
+// Print "MySirG" n times on the screen
 #include<stdio.h>
 int main()
 {
