@@ -1,3 +1,4 @@
+// Print all odd numbers from n to 1
 #include<stdio.h>
 int main()
 {
