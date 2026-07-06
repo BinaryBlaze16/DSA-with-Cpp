@@ -1,17 +1,23 @@
 class Solution {
 public:
-    int removeCoveredIntervals(vector<vector<int>>& A) {
-        ranges::sort(A, {}, [](auto& x) {
-            return pair{x[0], -x[1]};
+    int removeCoveredIntervals(vector<vector<int>>& intervals) {
+        sort(intervals.begin(), intervals.end(), [](const auto& a, const auto& b) {
+            if (a[0] == b[0]) {
+                return a[1] > b[1];
+            }
+            return a[0] < b[0];
         });
 
-        int res = 0, r = 0;
+        int ans = 0;
+        int maxEnd = -1;
 
-        for (auto& x : A) {
-            res += x[1] > r;
-            r = max(r, x[1]);
+        for (const auto& interval : intervals) {
+            if (interval[1] > maxEnd) {
+                ans++;
+                maxEnd = interval[1];
+            }
         }
 
-        return res;
+        return ans;
     }
 };
