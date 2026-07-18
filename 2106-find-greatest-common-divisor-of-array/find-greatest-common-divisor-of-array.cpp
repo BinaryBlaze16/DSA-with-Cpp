@@ -1,13 +1,9 @@
 class Solution {
 public:
     int findGCD(vector<int>& nums) {
-        int mn = 1001 , mx=0;
-
-        for(int i=0; i<nums.size(); i++){
-            if(nums[i]<mn) mn = nums[i];
-            if(nums[i] > mx) mx = nums[i];
-        }
-
-        return gcd(mn,mx);
+        int mm=*max_element(nums.begin(),nums.end());
+        int mx = *min_element(nums.begin(),nums.end());
+        int res= gcd(mm,mx);
+        return res;
     }
 };
