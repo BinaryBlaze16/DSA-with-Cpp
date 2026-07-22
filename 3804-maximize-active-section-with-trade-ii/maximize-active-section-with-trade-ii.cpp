@@ -1,58 +1,58 @@
+const int K = 17, MAXN = 1e5;
+int st[K + 1][MAXN];
+
+void build(auto& array) {
+	copy(array.begin(), array.end(), st[0]);
+
+	for(int i = 1; i <= K; i++)
+	    for(int j = 0; j + (1 << i) <= array.size(); j++)
+	        st[i][j] = max(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]);
+}
+
+int query(int L, int R) {
+	int i = bit_width(unsigned(R - L + 1)) - 1;
+	return max(st[i][L], st[i][R - (1 << i) + 1]);
+}
+
 class Solution {
 public:
-    vector<int> maxActiveSectionsAfterTrade(string s, vector<vector<int>>& queries) {
-        int n = s.size();
-        int ones = ranges::count(s, '1');
-
-        // maximal zero-blocks (inclusive ends), split into starts / ends
-        vector<int> zs, ze;
-        for (int i = 0; i < n; ) {
-            if (s[i] == '0') {
-                int j = i;
-                while (j < n && s[j] == '0') ++j;
-                zs.push_back(i); ze.push_back(j - 1);
-                i = j;
-            } else ++i;
+    vector<int> maxActiveSectionsAfterTrade(const string& s, vector<vector<int>>& queries) {
+        int n = s.size(), active = 0;
+        vector<pair<int, int>> zero;
+        vector<int> index(n);
+        for(int i = 0; i < n; i++) {
+        	if(s[i] == '0') {
+        		if(i > 0 && s[i - 1] == '0') zero.back().second++;
+        		else zero.push_back({i, 1});
+        	}else {
+        		active++;
+        	}
+        	index[i] = int(zero.size()) - 1;
         }
-        int nblocks = zs.size();
-
-        // valley j: full value = sum of the two adjacent block lengths
-        vector<int> V;
-        for (int j = 0; j + 1 < nblocks; ++j)
-            V.push_back((ze[j] - zs[j] + 1) + (ze[j + 1] - zs[j + 1] + 1));
-
-        // sparse table for range-max over V
-        int nv = V.size();
-        vector<vector<int>> sparse{V};
-        for (int half = 1; half * 2 <= nv; half *= 2) {
-            auto& prev = sparse.back();
-            vector<int> next;
-            next.reserve(prev.size() - half);
-            for (int i = 0; i + half < (int)prev.size(); ++i)
-                next.push_back(max(prev[i], prev[i + half]));
-            sparse.push_back(move(next));
+        if(zero.empty()) return vector<int>(queries.size(), active);
+        
+        vector<int> gains(zero.size() - 1);
+        for(int i = zero.size() - 2; i >= 0; i--) {
+        	gains[i] = zero[i].second + zero[i + 1].second;
         }
+        build(gains);
 
-        auto rmq = [&](int lo, int hi) {              // inclusive max over V[lo..hi]
-            int t = bit_width(unsigned(hi - lo + 1)) - 1;
-            return max(sparse[t][lo], sparse[t][hi - (1 << t) + 1]);
-        };
+        vector<int> res(queries.size(), active);
+        for(int i = 0, sz = queries.size(); i < queries.size(); i++) {
+        	int L = queries[i][0], R = queries[i][1];
+        	int start = index[L] + 1, end = index[R] - (s[R] == '0');
+        	int cnt_left = index[L] == -1 ? -1 : (zero[index[L]].second - (L - zero[index[L]].first));
+    		int cnt_right = index[R] == -1 ? -1 : (R - zero[index[R]].first + 1);
 
-        auto clip = [&](int j, int l, int r) {        // valley j's gain, clipped to [l, r]
-            return V[j] - max(0, l - zs[j]) - max(0, ze[j + 1] - r);
-        };
-
-        auto gain = [&](int l, int r) {
-            if (nblocks < 2) return 0;
-            int ja = ranges::lower_bound(ze, l) - ze.begin();     // first usable valley: left block ends >= l
-            int jb = ranges::upper_bound(zs, r) - zs.begin() - 2; // last  usable valley: right block starts <= r
-            if (ja > jb) return 0;
-            return max({clip(ja, l, r), clip(jb, l, r), jb - ja >= 2 ? rmq(ja + 1, jb - 1) : 0});
-        };
-
-        vector<int> ans;
-        ans.reserve(queries.size());
-        for (auto& q : queries) ans.push_back(ones + gain(q[0], q[1]));
-        return ans;
+        	if(start < end)
+    			res[i] = max(res[i], active + query(start, end - 1));
+    		if(s[L] == '0' && s[R] == '0' && index[L] + 1 == index[R])
+    			res[i] = max(res[i], active + cnt_left + cnt_right);
+            if(s[L] == '0' && index[L] + 1 < index[R] + (s[R] == '1'))
+                res[i] = max(res[i], active + cnt_left + zero[index[L] + 1].second);
+            if(s[R] == '0' && index[L] < index[R] - 1)
+                res[i] = max(res[i], active + cnt_right + zero[index[R] - 1].second);
+        }
+        return res;
     }
 };
