@@ -1,32 +1,19 @@
 class Solution {
 public:
     string smallestPalindrome(string s) {
-        int a= s.size();
-        if(a==1){
-            return s;
+       vector<int>cnt(26);
+       for(char c:s){
+        cnt[c-'a']++;
+       }
+       string l,m;
+       for(int i=0;i<26;i++){
+        l+=string(cnt[i]/2,'a'+i);
+        if(cnt[i]%2==1){
+            m='a'+i;
         }
-        if(a==2){
-            return s;
-        }
-        if(a==3){
-            return s;
-        }
-        int x=a/2;
-        string b,c;
-        if(a%2==0){
-            sort(s.begin(), s.begin() + x);
-            b += string(s.begin(), s.begin() + x);
-            reverse(s.begin(),s.begin()+x);
-            c += string(s.begin(),s.begin()+x);
-            return b+c;
-        }
-        else{
-            // string mid=
-            sort(s.begin(), s.begin() + x);
-            b += string(s.begin(), s.begin() + x);
-            reverse(s.begin(),s.begin()+x);
-            c += string(s.begin(),s.begin()+x);
-            return b+s[x]+c;
-        }
+       }
+       string ans=l+m;
+       reverse(l.begin(),l.end());
+       return ans+l;
     }
 };
