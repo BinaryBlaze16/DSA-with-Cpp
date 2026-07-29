@@ -1,82 +1,81 @@
-constexpr int INF=1e6+1, N=24;
-int C[N][N]={{0}};
-
-constexpr void Pascal() {
-    if (C[0][0]==1) return; // computed once
-    C[0][0]=1;
-    for (int i=1; i<N; i++) {
-        C[i][0]=C[i][i]=1;
-        for (int j=1; j<=i/2; j++) {
-            C[i][j]=C[i][i-j]=C[i-1][j-1]+C[i-1][j];
-        }
-    }
-}
-
+#include <cctype>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <string>
+#include <vector>
 class Solution {
-public:
-    static int comb(int n, int k) {
-        if (n<N) return C[n][k];//  look at the table
-        if (2*k>n) k=n-k;// C(n, n-k)=C(n, k)
-        int64_t ans=1;
-        for (int i=1; i<=k; i++) {
-            ans=ans*(n-i+1)/i;
-            if (ans>=INF) return INF;
-        }
-        return ans;
+ public:
+  std::string smallestPalindrome(std::string s, int k) {
+    std::vector<int> count(26);
+
+    for (int i = 0; i < std::size(s) / 2; ++i) {
+      ++count[s[i] - 'a'];
     }
 
-    static int perm(const array<int, 26>& freq, int sz) {
-        int64_t ans=1;
-        for (int f : freq) {
-            if (f==0) continue;
-            ans*=comb(sz, f);
-            if (ans>=INF) return INF;
-            sz-=f;
+    int total = 0, counting = 1, remain = 0;
+    int i;
+
+    for (i = std::size(count) - 1; i >= 0; --i) {
+      for (int c = 1; c <= count[i]; ++c) {
+        ++total;
+        counting = counting * total / c;
+        if (counting >= k) {
+          remain = count[i] - c;
+          break;
         }
-        return ans;
+      }
+
+      if (counting >= k) {
+        break;
+      }
     }
 
-    static string smallestPalindrome(string& s, int k) {
-        Pascal();
-        const int n=s.size(), n0=n/2;
-        array<int, 26> freq={0};
-        for (int i=0; i<n0; i++)
-            freq[s[i]-'a']++;
-        
-        int total=perm(freq, n0);
-        if (k>total) return "";
+    if (counting < k) {
+      return "";
+    }
 
-        string left;
-        left.reserve(n);
-        int sz=n0;
-        for (int i=0; i<n0; i++) {
-            for (int c=0; c<26; c++) {
-                if (freq[c]==0) continue;
-                freq[c]--;
-                int cnt=perm(freq, --sz);
-                if (cnt>=k) {
-                    left.push_back('a' + c);
-                    break;
-                } 
-                else {
-                    k -= cnt;
-                    freq[c]++;// backtrack
-                    sz++;
-                }
-            }
+    std::string hasil(std::size(s), 0);
+    int l = 0;
+
+    for (int j = 0; j <= i; ++j) {
+      const char x = 'a' + j;
+      const int c = j != i ? count[j] : remain;
+
+      for (int _ = 0; _ < c; ++_) {
+        --count[j];
+        hasil[l++] = x;
+      }
+    }
+
+    while (total) {
+      for (int j = i; j < std::size(count); ++j) {
+        if (!count[j]) {
+          continue;
         }
 
-        string right=left;
-        reverse(right.begin(), right.end());
-        if (n&1) left.push_back(s[n/2]);
-        left.append(right);
-        return left;
+        const auto new_count = static_cast<int64_t>(counting) * count[j] / total;
+
+        if (new_count < k) {
+          k -= new_count;
+          continue;
+        }
+
+        counting = new_count;
+        --count[j];
+        --total;
+        hasil[l++] = 'a' + j;
+        break;
+      }
     }
+
+    if (std::size(s) % 2) {
+      hasil[l++] = s[std::size(s) / 2];
+    }
+
+    for (int i = l - 1 - std::size(s) % 2; i >= 0; --i) {
+      hasil[l++] = hasil[i];
+    }
+    return hasil;
+  }
 };
-
-auto init = []() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    cout.tie(nullptr);
-    return 'c';
-}();
