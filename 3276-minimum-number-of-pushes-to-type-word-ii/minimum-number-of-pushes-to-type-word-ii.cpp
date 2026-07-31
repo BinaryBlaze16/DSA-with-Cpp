@@ -1,20 +1,15 @@
 class Solution {
 public:
     int minimumPushes(string word) {
-        vector<int> charCount(26, 0);
-
-        for(char ch : word) {
-            charCount[ch - 'a']++;
+        vector<int>c(26);
+        for(char ch:word){
+           c[ch-'a']++;
         }
-
-        sort(charCount.begin(), charCount.end(), greater<int>());
-
-        int minPushCount = 0;
-
-        for(int i = 0; i < 26; i++) {
-            minPushCount += charCount[i] * (i / 8 + 1);
+        sort(c.begin(),c.end(),greater<int>());
+        int l=0;
+        for(int i=0;i<26;i++){
+           l+=c[i]*(i/8+1);
         }
-
-        return minPushCount;
+        return l;
     }
 };
