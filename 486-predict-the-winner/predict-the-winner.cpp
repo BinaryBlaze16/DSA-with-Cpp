@@ -5,8 +5,9 @@ public:
         if (l == r){
             return nums[l];
         }
-    if (dp[l][r] != -1)
+    if (dp[l][r] != -1){
             return dp[l][r];
+    }
     int i=nums[l] - solve(nums, l + 1, r);
     int j=nums[r] - solve(nums, l, r - 1);
         return dp[l][r]=max(i,j);
